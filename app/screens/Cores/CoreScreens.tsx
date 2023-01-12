@@ -3,8 +3,6 @@ import React, { FC } from "react"
 import { View } from "react-native"
 import { Button, Header, Screen, Text } from "../../components"
 import { NavigationProp, useNavigation } from "@react-navigation/native"
-import { CoreStackParamList } from "../../navigators/cores/CoresStackNavigator"
-import { BottomTabsParamList } from "../../navigators/BottomTabNavigator"
 import { AppStackParamList } from "../../navigators"
 
 export const examples = [
@@ -12,18 +10,10 @@ export const examples = [
     screen: "HeartOfTheMatter",
     title: "💚 The Heart of the Matter",
   },
-  // {
-  //   screen: "Worklets",
-  //   title: "👩‍🏭 Worklets",
-  // },
-  // {
-  //   screen: "Transitions",
-  //   title: "🔁 Transitions",
-  // },
-  // {
-  //   screen: "PanGesture",
-  //   title: "💳 PanGesture",
-  // },
+  {
+    screen: "PanGesture",
+    title: "💳 PanGesture",
+  },
   // {
   //   screen: "Animations",
   //   title: "🐎 Animations",

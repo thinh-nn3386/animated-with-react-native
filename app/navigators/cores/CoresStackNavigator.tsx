@@ -3,9 +3,11 @@ import { StackScreenProps } from "@react-navigation/stack"
 import { observer } from "mobx-react-lite"
 import React from "react"
 import { HeartOfTheMatterScreen } from "../../screens/Cores/HeartOfTheMatter/HeartOfTheMatterScreen"
+import { PanGestureScreen } from "../../screens/Cores/PanGesture/PanGestureScreen"
 
 export type CoreStackParamList = {
   HeartOfTheMatter: undefined
+  PanGesture: undefined
 }
 
 export type CoreStackScreenProps<T extends keyof CoreStackParamList> = StackScreenProps<
@@ -21,6 +23,7 @@ export const CoreStack = observer(function CoreStack() {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="HeartOfTheMatter" component={HeartOfTheMatterScreen} />
+      <Stack.Screen name="PanGesture" component={PanGestureScreen} />
     </Stack.Navigator>
   )
 })
