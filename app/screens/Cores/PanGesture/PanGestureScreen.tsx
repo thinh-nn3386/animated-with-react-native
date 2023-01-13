@@ -7,14 +7,26 @@ import Animated, {
   useSharedValue,
   withDecay,
 } from "react-native-reanimated"
-import { Card, Cards, CARD_HEIGHT, CARD_WIDTH, Header, Screen } from "../../../components"
+import {
+  Card,
+  Cards,
+  CARD_HEIGHT,
+  CARD_WIDTH,
+  Header,
+  HEADER_HEIGHT,
+  Screen,
+} from "../../../components"
 import { goBack } from "../../../navigators"
+import { clamp } from "react-native-redash"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 export const PanGestureScreen = () => {
+  const bottomInsets = useSafeAreaInsets().bottom
   const { width, height } = useWindowDimensions()
   const x = useSharedValue(0)
   const y = useSharedValue(0)
-
+  const boundX = width - CARD_WIDTH
+  const boundY = height - CARD_HEIGHT - HEADER_HEIGHT - bottomInsets * 2
   const panGesture = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
     {
@@ -27,17 +39,19 @@ export const PanGestureScreen = () => {
       context.offsetY = y.value
     },
     onActive(event, context) {
-      x.value = context.offsetX + event.translationX
-      y.value = context.offsetY + event.translationY
+      x.value = clamp(context.offsetX + event.translationX, 0, boundX) //Clamps a node with a lower and upper bound.
+      y.value = clamp(context.offsetY + event.translationY, -HEADER_HEIGHT, boundY)
     },
     onEnd(event, context) {
       x.value = withDecay({
         velocity: event.velocityX,
-        clamp: [0, width - CARD_WIDTH],
+        clamp: [0, boundX],
+        velocityFactor: 0.5,
       })
       y.value = withDecay({
         velocity: event.velocityY,
-        clamp: [0, height - CARD_HEIGHT],
+        clamp: [-HEADER_HEIGHT, boundY],
+        velocityFactor: 0.5,
       })
     },
   })

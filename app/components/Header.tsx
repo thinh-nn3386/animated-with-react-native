@@ -13,6 +13,8 @@ import { ExtendedEdge, useSafeAreaInsetsStyle } from "../utils/useSafeAreaInsets
 import { Icon, IconTypes } from "./Icon"
 import { Text, TextProps } from "./Text"
 
+export const HEADER_HEIGHT = 56
+
 export interface HeaderProps {
   /**
    * The layout of the title relative to the action components.

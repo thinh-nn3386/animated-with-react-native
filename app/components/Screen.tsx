@@ -17,9 +17,13 @@ import { ExtendedEdge, useSafeAreaInsetsStyle } from "../utils/useSafeAreaInsets
 
 interface BaseScreenProps {
   /**
-   * Children components.
+   * On Top header components.
    */
   header?: React.ReactNode
+  /**
+   * On Bottom footer components.
+   */
+  footer?: React.ReactNode
   /**
    * Children components.
    */
@@ -213,13 +217,15 @@ export function Screen(props: ScreenProps) {
         {...KeyboardAvoidingViewProps}
         style={[$keyboardAvoidingViewStyle, KeyboardAvoidingViewProps?.style]}
       >
-        {!!props.header && props.header} 
-        
+        {!!props.header && props.header}
+
         {isNonScrolling(props.preset) ? (
           <ScreenWithoutScrolling {...props} />
         ) : (
           <ScreenWithScrolling {...props} />
         )}
+        
+        {!!props.footer && props.footer}
       </KeyboardAvoidingView>
     </View>
   )

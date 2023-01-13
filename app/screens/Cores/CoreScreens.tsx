@@ -14,10 +14,10 @@ export const examples = [
     screen: "PanGesture",
     title: "💳 PanGesture",
   },
-  // {
-  //   screen: "Animations",
-  //   title: "🐎 Animations",
-  // },
+  {
+    screen: "Transitions",
+    title: "🐎 Transitions",
+  },
   // {
   //   screen: "CircularSlider",
   //   title: "⭕️ Circular Slider",
