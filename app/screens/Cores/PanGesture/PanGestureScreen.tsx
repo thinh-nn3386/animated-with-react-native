@@ -17,7 +17,7 @@ import {
   Screen,
 } from "../../../components"
 import { goBack } from "../../../navigators"
-import { clamp } from "react-native-redash"
+import { clamp, withBouncing } from "react-native-redash"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 export const PanGestureScreen = () => {
@@ -43,11 +43,11 @@ export const PanGestureScreen = () => {
       y.value = clamp(context.offsetY + event.translationY, -HEADER_HEIGHT, boundY)
     },
     onEnd(event, context) {
-      x.value = withDecay({
+      x.value = withBouncing( withDecay({
         velocity: event.velocityX,
-        clamp: [0, boundX],
+        // clamp: [0, boundX],
         velocityFactor: 0.5,
-      })
+      }), 0, boundX)
       y.value = withDecay({
         velocity: event.velocityY,
         clamp: [-HEADER_HEIGHT, boundY],

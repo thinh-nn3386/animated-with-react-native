@@ -18,10 +18,14 @@ export const examples = [
     screen: "Transitions",
     title: "🐎 Transitions",
   },
-  // {
-  //   screen: "CircularSlider",
-  //   title: "⭕️ Circular Slider",
-  // },
+  {
+    screen: "HigherAnimation",
+    title: "🐎 HigherAnimation",
+  },
+  {
+    screen: "CircularSlider",
+    title: "⭕️ Circular Slider",
+  },
   // {
   //   screen: "Graph",
   //   title: "📈 Graph Interactions",
