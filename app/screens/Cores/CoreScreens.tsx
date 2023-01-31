@@ -7,6 +7,10 @@ import { AppStackParamList } from "../../navigators"
 
 export const examples = [
   {
+    screen: 'RNSvgLi',
+    title: "📚 Learn React Native Svg lib",
+  },
+  {
     screen: "HeartOfTheMatter",
     title: "💚 The Heart of the Matter",
   },
@@ -46,10 +50,10 @@ export const examples = [
   //   screen: "Bezier",
   //   title: "⤴️ Bézier",
   // },
-  // {
-  //   screen: "ShapeMorphing",
-  //   title: "☺️ Shape Morphing",
-  // },
+  {
+    screen: "ShapeMorphing",
+    title: "☺️ Shape Morphing",
+  },
   // {
   //   screen: "Accordion",
   //   title: "🗺 Accordion",
