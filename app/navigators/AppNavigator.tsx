@@ -21,6 +21,7 @@ import {
 } from "../screens"
 import { CanBeDoneScreen } from "../screens/CanBeDone/CanBeDoneScreen"
 import { BottomTabs, BottomTabsParamList } from "./BottomTabNavigator"
+import { CanBeDoneStack, CanBeDoneStackParamList } from "./canBeDone/CanBeDoneStackNavigator"
 import { CoreStack, CoreStackParamList } from "./cores/CoresStackNavigator"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 
@@ -41,7 +42,7 @@ export type AppStackParamList = {
   Welcome: undefined
   BottomTab: NavigatorScreenParams<BottomTabsParamList>
 
-  CanBeDoneStack: undefined
+  CanBeDoneStack: NavigatorScreenParams<CanBeDoneStackParamList>
   CoreStack: NavigatorScreenParams<CoreStackParamList>
 }
 
@@ -69,7 +70,7 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen  name="BottomTab" component={BottomTabs} />
 
       <Stack.Screen name="CoreStack" component={CoreStack} />
-      <Stack.Screen  name="CanBeDoneStack" component={CanBeDoneScreen} />
+      <Stack.Screen  name="CanBeDoneStack" component={CanBeDoneStack} />
     </Stack.Navigator>
   )
 })
