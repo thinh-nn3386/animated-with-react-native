@@ -1,72 +1,67 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Screen } from '../../../components/Screen'
-import { Alert, Image, View, ViewStyle } from 'react-native'
-import Animated, { runOnUI, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
+import { Alert, Dimensions, Image, View, ViewStyle } from 'react-native'
+import Animated, { Easing, interpolate, interpolateColor, runOnUI, SharedValue, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withDecay, withTiming } from 'react-native-reanimated'
 import { Gesture, GestureDetector, PanGestureHandler, PanGestureHandlerGestureEvent, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler'
-import { clamp } from 'react-native-redash'
+import { clamp, withBouncing } from 'react-native-redash'
+import { ZoomableItem } from './ZoomableItem'
+import { goBack, goNext, IMAGE, ITEM_WIDTH, MAX_ZOOM, MIN_ZOOM, SPACING, SWIP_VELOCITY, THRESSHOLD } from './utils'
 
 
-const MIN_ZOOM = 0.8
-const MAX_ZOOM = 10
 
 export const PinToZoomScreen = () => {
-
-  const scale = useSharedValue(1)
-  //Position expressed in points along X axis of center anchor point of gesture
+  const [currentIndex, setCurrentIndex] = useState(0)
   const translateX = useSharedValue(0)
-
-  //Position expressed in points along Y axis of center anchor point of gesture
   const translateY = useSharedValue(0)
+  const onSwipDown = useSharedValue(false)
 
 
-  const pinchGestureEvent = useAnimatedGestureHandler
-    <PinchGestureHandlerGestureEvent, {
-      scale: number;
+  const panGestureHandler = useAnimatedGestureHandler
+    <PanGestureHandlerGestureEvent, {
       x: number
       y: number
-      focalX: number
-      focalY: number
     }>
     ({
       onStart(event, context) {
-        context.scale = scale.value
         context.x = translateX.value
         context.y = translateY.value
-        context.focalX = event.focalX
-        context.focalY = event.focalY
       },
       onActive(event, context) {
-        scale.value = clamp(event.scale + context.scale - 1, MIN_ZOOM, MAX_ZOOM)
-        translateX.value = (event.focalX - context.focalX) + translateX.value
-        translateY.value = (event.focalY - context.focalY) + translateY.value
-      }
+        translateX.value = event.translationX + context.x
+        translateY.value = clamp(event.translationY + context.y, 0, 200)
+      },
+      onEnd(event, context) {
+        if (translateY.value === 0) {
+          const moveX = event.translationX
+          const veX = Math.abs(event.velocityX)
+          if (moveX > 0) {
+            goBack(moveX, veX, translateX, currentIndex, setCurrentIndex)
+          }
+          if (moveX < 0) {
+            goNext(moveX, veX, translateX, currentIndex, setCurrentIndex)
+          }
+        }
+      },
     })
 
-
-  const singleTap = Gesture.Tap()
-    .maxDuration(250)
-    .runOnJS(true)
-    .onStart(() => {
-    })
-    ;
-
-  const doubleTap = Gesture.Tap()
-    .maxDuration(250)
-    .numberOfTaps(2)
-    .runOnJS(true)
-    .onEnd(() => {
-      if (scale.value === 1) {
-        // image is not scale
-        scale.value = withTiming(2)
-      } else {
-        scale.value = withTiming(1)
-      }
-      translateX.value = withTiming(0)
-      translateY.value = withTiming(0)
-    });
+  const $containerTransform = useAnimatedStyle(() => {
+    if (translateY.value !== 0) {
+      return {}
+    }
+    return {
+      transform: [
+        {
+          translateX: translateX.value
+        }
+      ]
+    }
+  })
 
 
-  const $imageStyle = useAnimatedStyle(() => {
+  const $containerAnim = useAnimatedStyle(() => {
+    if (translateY.value === 0) {
+      return {}
+    }
     return {
       transform: [
         {
@@ -76,31 +71,54 @@ export const PinToZoomScreen = () => {
           translateY: translateY.value
         },
         {
-          scale: scale.value
+          scale: interpolate(translateY.value, [0, 200], [1, 0.5])
         }
       ]
     }
   })
+
+  const $background = useAnimatedStyle(() => {
+    return {
+      backgroundColor: interpolateColor(translateY.value, [0, 200], ["black", "transparent"]),
+    }
+  })
+
+
   return (
-    <View style={$container}>
-      <GestureDetector gesture={Gesture.Exclusive(doubleTap, singleTap)}>
-        <PinchGestureHandler onGestureEvent={pinchGestureEvent}>
-          <Animated.Image
-            resizeMode='contain'
-            source={require('./image.jpeg')}
-            style={[{
-              maxWidth: "100%"
-            }, $imageStyle]}
-          />
-        </PinchGestureHandler>
-      </GestureDetector>
-    </View>
+    <Animated.View style={[$container, $background]}>
+      <Animated.View style={[$container, $containerAnim]}>
+        <PanGestureHandler onGestureEvent={panGestureHandler}>
+          <Animated.View style={[$mediaContainer, $containerTransform]}>
+            {
+              IMAGE.map((source, index) => (
+                <ZoomableItem
+                  key={index}
+                  spacing={index !== 0 ? SPACING : 0}
+                  minZoom={MIN_ZOOM}
+                  maxZoom={MAX_ZOOM}
+                  source={source}
+                  moveX={translateX}
+                  currentIndex={currentIndex}
+                  setCurrentIndex={setCurrentIndex}
+                />
+              ))
+            }
+          </Animated.View>
+        </PanGestureHandler>
+      </Animated.View>
+    </Animated.View>
   )
 }
 
 
+
 const $container: ViewStyle = {
   flex: 1,
-  justifyContent: "center",
+  overflow: "hidden"
+}
+
+const $mediaContainer: ViewStyle = {
+  flex: 1,
+  flexDirection: "row",
   alignItems: "center"
 }
