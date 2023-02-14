@@ -1,28 +1,21 @@
 import React, { useState } from "react"
+import { goBack as navigateBack } from "../../../navigators"
 import { Screen } from "../../../components/Screen"
 import { Alert, Dimensions, Image, View, ViewStyle } from "react-native"
 import Animated, {
   interpolate,
   interpolateColor,
+  runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated"
-import {
-  PanGestureHandler,
-  PanGestureHandlerGestureEvent,
-} from "react-native-gesture-handler"
+import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler"
 import { clamp } from "react-native-redash"
 import { ZoomableItem } from "./ZoomableItem"
-import {
-  goBack,
-  goNext,
-  IMAGE,
-  MAX_ZOOM,
-  MIN_ZOOM,
-  SPACING,
-} from "./utils"
+import { goBack, goNext, IMAGE, MAX_ZOOM, MIN_ZOOM, SPACING, SWIP_DOWN_TRHESSHOLD } from "./Utils"
+import { SharedElement } from "react-navigation-shared-element"
 
 const { width, height } = Dimensions.get("screen")
 export const PinToZoomScreen = () => {
@@ -81,6 +74,9 @@ export const PinToZoomScreen = () => {
       }
 
       if (onVertical.value) {
+        if (translateY.value > SWIP_DOWN_TRHESSHOLD) {
+          runOnJS(navigateBack)()
+        }
         translateX.value = withTiming(0, { duration: 200 })
         translateY.value = withTiming(0, { duration: 200 })
       }
@@ -131,17 +127,19 @@ export const PinToZoomScreen = () => {
         <PanGestureHandler onGestureEvent={panGestureHandler}>
           <Animated.View style={[$mediaContainer, $containerTransform]}>
             {IMAGE.map((source, index) => (
-              <ZoomableItem
-                key={index}
-                mediaIndex={index}
-                spacing={index !== 0 ? SPACING : 0}
-                minZoom={MIN_ZOOM}
-                maxZoom={MAX_ZOOM}
-                source={source}
-                moveX={moveX}
-                currentIndex={currentIndex}
-                setCurrentIndex={setCurrentIndex}
-              />
+              <SharedElement id={`image.${index}`}>
+                <ZoomableItem
+                  key={index}
+                  mediaIndex={index}
+                  spacing={index !== 0 ? SPACING : 0}
+                  minZoom={MIN_ZOOM}
+                  maxZoom={MAX_ZOOM}
+                  source={source}
+                  moveX={moveX}
+                  currentIndex={currentIndex}
+                  setCurrentIndex={setCurrentIndex}
+                />
+              </SharedElement>
             ))}
           </Animated.View>
         </PanGestureHandler>

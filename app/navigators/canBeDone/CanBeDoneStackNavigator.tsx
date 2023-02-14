@@ -2,7 +2,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack"
 import { StackScreenProps } from "@react-navigation/stack"
 import { observer } from "mobx-react-lite"
 import React from "react"
-import { PinToZoomScreen } from "../../screens/CanBeDone/PinToZoom/PinToZoomScreen"
+import { GalleryStack } from "../../screens/CanBeDone/PinToZoom/Stack"
 
 export type CanBeDoneStackParamList = {
   PinToZoom: undefined
@@ -21,7 +21,7 @@ export const CanBeDoneStack = observer(function CoreStack() {
       screenOptions={{ headerShown: false }}
       initialRouteName="PinToZoom"
     >
-      <Stack.Screen name="PinToZoom" component={PinToZoomScreen} />
+      <Stack.Screen name="PinToZoom" component={GalleryStack} />
     </Stack.Navigator>
   )
 })

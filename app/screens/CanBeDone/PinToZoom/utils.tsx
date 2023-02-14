@@ -1,4 +1,4 @@
-import { Dimensions } from "react-native";
+import { Dimensions, ImageSourcePropType } from "react-native";
 import { Easing, runOnJS, SharedValue, withTiming } from "react-native-reanimated";
 
 
@@ -6,14 +6,18 @@ const { width, height } = Dimensions.get("screen")
 export const SPACING = 16
 export const MIN_ZOOM = 1
 export const MAX_ZOOM = 10
-export const IMAGE = [
-  require('./a.png'),
-  require('./image.jpeg'),
-  require('./b.jpeg'),
+export const IMAGE: ImageSourcePropType[] = [
+  require('../../../../assets/images/landscape/1.jpg'),
+  require('../../../../assets/images/landscape/2.jpeg'),
+  require('../../../../assets/images/landscape/3.jpg'),
+  require('../../../../assets/images/landscape/4.png'),
+  require('../../../../assets/images/landscape/5.jpeg'),
+  require('../../../../assets/images/landscape/6.jpeg'),
 ]
 export const ITEM_WIDTH = width + SPACING
 export const THRESSHOLD = width / 2
 export const SWIP_VELOCITY = 1500
+export const SWIP_DOWN_TRHESSHOLD = 50
 
 
 export const noName = (

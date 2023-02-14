@@ -11,7 +11,7 @@ import {
   Gesture,
   GestureDetector,
 } from "react-native-gesture-handler"
-import { goBack, goNext, noName } from "./utils"
+import { goBack, goNext, noName } from "./Utils"
 import { clamp } from "react-native-redash"
 
 interface Props {
@@ -163,7 +163,6 @@ export const ZoomableItem = ({
     <View style={[$container, { marginLeft: spacing }]}>
       <GestureDetector gesture={gesture}>
         <Animated.Image
-          resizeMode="contain"
           source={source}
           style={[
             {
