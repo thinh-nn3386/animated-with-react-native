@@ -1,11 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { Screen } from '../../../components/Screen'
-import { Alert, Dimensions, Image, ImageSourcePropType, View, ViewStyle } from 'react-native'
-import Animated, { runOnJS, runOnUI, SharedValue, useAnimatedGestureHandler, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'
-import { Gesture, GestureDetector, PanGestureHandler, PanGestureHandlerGestureEvent, PinchGestureHandler, PinchGestureHandlerGestureEvent } from 'react-native-gesture-handler'
-import { goBack, goNext, ITEM_WIDTH, noName } from './utils'
-import { clamp } from 'react-native-redash'
-
+import React, { useEffect, useMemo, useState } from "react"
+import {  Dimensions,  ImageSourcePropType, View, ViewStyle } from "react-native"
+import Animated, {
+  runOnJS,
+  SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated"
+import {
+  Gesture,
+  GestureDetector,
+} from "react-native-gesture-handler"
+import { goBack, goNext, noName } from "./utils"
+import { clamp } from "react-native-redash"
 
 interface Props {
   minZoom: number
@@ -13,7 +20,8 @@ interface Props {
   source: ImageSourcePropType
   spacing: number
   moveX: SharedValue<number>
-  currentIndex: number,
+  mediaIndex: number
+  currentIndex: number
   setCurrentIndex: (val: number) => void
 }
 
@@ -26,7 +34,8 @@ export const ZoomableItem = ({
   spacing,
   moveX,
   currentIndex,
-  setCurrentIndex
+  mediaIndex,
+  setCurrentIndex,
 }: Props) => {
   const [onScale, setOnScale] = useState(false)
 
@@ -39,30 +48,46 @@ export const ZoomableItem = ({
   const translateX = useSharedValue(0)
   //Position expressed in points along Y axis of center anchor point of gesture
   const translateY = useSharedValue(0)
-  const pinchGestureEvent = usePinchGesture(scale, translateX, translateY, minZoom, maxZoom, setScale)
 
+  const pinchGestureEvent = usePinchGesture(
+    scale,
+    translateX,
+    translateY,
+    minZoom,
+    maxZoom,
+    setScale,
+  )
   const parentTranslateX = useSharedValue(0)
   const panCtx = useSharedValue({
     x: 0,
     y: 0,
-    parentMoveX: 0
+    parentMoveX: 0,
   })
   const panGestureEvent = Gesture.Pan()
     .onStart((e) => {
       panCtx.value = {
         x: translateX.value,
         y: translateY.value,
-        parentMoveX: moveX.value
+        parentMoveX: moveX.value,
       }
     })
     .onChange((e) => {
       const haftWidth = width / 2
-      translateX.value = noName(panCtx.value.x + e.translationX, -
-        (scale.value - 1) * haftWidth, (scale.value - 1) * haftWidth, parentTranslateX, currentIndex)
+      const haftHeight = height/2
+      translateX.value = noName(
+        panCtx.value.x + e.translationX,
+        -(scale.value - 1) * haftWidth,
+        (scale.value - 1) * haftWidth,
+        parentTranslateX,
+        currentIndex,
+      )
 
       moveX.value = panCtx.value.parentMoveX + parentTranslateX.value
 
-      translateY.value = panCtx.value.y + e.translationY
+      translateY.value = 
+      clamp(panCtx.value.y + e.translationY,
+        -(scale.value - 1) * haftWidth,
+        (scale.value - 1) * haftWidth, )
     })
     .onEnd((e) => {
       const parentMoveX = parentTranslateX.value
@@ -77,14 +102,10 @@ export const ZoomableItem = ({
       parentTranslateX.value = 0
     })
 
-
   const singleTap = Gesture.Tap()
     .maxDuration(250)
     .runOnJS(true)
-    .onStart(() => {
-    })
-    ;
-
+    .onStart(() => {})
   const doubleTap = Gesture.Tap()
     .maxDuration(250)
     .numberOfTaps(2)
@@ -101,41 +122,56 @@ export const ZoomableItem = ({
       }
       translateX.value = withTiming(0)
       translateY.value = withTiming(0)
-    });
+    })
 
   const $imageStyle = useAnimatedStyle(() => {
     return {
       transform: [
         {
-          translateX: translateX.value
+          translateX: translateX.value,
         },
         {
-          translateY: translateY.value
+          translateY: translateY.value,
         },
         {
-          scale: scale.value
-        }
-      ]
+          scale: scale.value,
+        },
+      ],
     }
   })
 
-
   let gesture = useMemo(() => {
     if (onScale)
-      return Gesture.Simultaneous(pinchGestureEvent, panGestureEvent, Gesture.Exclusive(doubleTap, singleTap))
+      return Gesture.Simultaneous(
+        pinchGestureEvent,
+        panGestureEvent,
+        Gesture.Exclusive(doubleTap, singleTap),
+      )
     return Gesture.Simultaneous(pinchGestureEvent, Gesture.Exclusive(doubleTap, singleTap))
   }, [onScale])
+
+  useEffect(() => {
+    if (mediaIndex !== currentIndex && onScale) {
+      translateX.value = withTiming(0, { duration: 200 })
+      translateY.value = withTiming(0, { duration: 200 })
+      scale.value = withTiming(1, { duration: 200 })
+      setOnScale(false)
+    }
+  }, [currentIndex])
 
   return (
     <View style={[$container, { marginLeft: spacing }]}>
       <GestureDetector gesture={gesture}>
         <Animated.Image
-          resizeMode='contain'
+          resizeMode="contain"
           source={source}
-          style={[{
-            width: width,
-            maxWidth: "100%"
-          }, $imageStyle]}
+          style={[
+            {
+              width: width,
+              maxWidth: "100%",
+            },
+            $imageStyle,
+          ]}
         />
       </GestureDetector>
     </View>
@@ -148,7 +184,7 @@ const usePinchGesture = (
   translateY: SharedValue<number>,
   minZoom: number,
   maxZoom: number,
-  setScale: (val: boolean) => void
+  setScale: (val: boolean) => void,
 ) => {
   const pinchCtx = useSharedValue({
     scale: 0,
@@ -173,16 +209,20 @@ const usePinchGesture = (
       } else {
         if (pinchCtx.value.scale > 1) {
           // previous zoom > 1 => when zoom to 1 need this formular
-          scale.value = clamp(pinchCtx.value.scale - pinchCtx.value.scale * (1 - e.scale), minZoom, maxZoom)
+          scale.value = clamp(
+            pinchCtx.value.scale - pinchCtx.value.scale * (1 - e.scale),
+            minZoom,
+            maxZoom,
+          )
         } else {
           scale.value = clamp(pinchCtx.value.scale - e.scale - 1, minZoom, maxZoom)
         }
       }
 
-      translateX.value = (e.focalX - pinchCtx.value.focalX) + translateX.value
-      translateY.value = (e.focalY - pinchCtx.value.focalY) + translateY.value
+      translateX.value = e.focalX - pinchCtx.value.focalX + translateX.value
+      translateY.value = e.focalY - pinchCtx.value.focalY + translateY.value
     })
-    .onEnd(e => {
+    .onEnd((e) => {
       if (scale.value !== 1) {
         runOnJS(setScale)(true)
       } else {
@@ -191,12 +231,9 @@ const usePinchGesture = (
     })
 }
 
-
 const $container: ViewStyle = {
   justifyContent: "center",
   width: width,
   height: height,
-  overflow: "hidden"
+  overflow: "hidden",
 }
-
-
