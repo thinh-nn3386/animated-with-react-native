@@ -17,7 +17,7 @@ export const IMAGE: ImageSourcePropType[] = [
 export const ITEM_WIDTH = width + SPACING
 export const THRESSHOLD = width / 2
 export const SWIP_VELOCITY = 1500
-export const SWIP_DOWN_TRHESSHOLD = 50
+export const SWIP_DOWN_TRHESSHOLD = 100
 
 
 export const noName = (
@@ -29,14 +29,11 @@ export const noName = (
 ) => {
   "worklet";
 
-  const currentDistance = -currentIndex * ITEM_WIDTH
   if (value > upperBound) {
     overflow.value = value - upperBound
   } else if (value < lowerBound) {
     overflow.value = value - lowerBound
   }
-
-  console.log(overflow.value)
 
   return Math.min(Math.max(lowerBound, value), upperBound);
 };

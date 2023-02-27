@@ -1,20 +1,21 @@
-import { useFocusEffect, useNavigation } from "@react-navigation/native"
+import {
+  NavigationProp,
+  NavigatorScreenParams,
+  useFocusEffect,
+  useNavigation,
+} from "@react-navigation/native"
+import { StackScreenProps } from "@react-navigation/stack"
 import React, { useState } from "react"
-import { FlatList, Image, ImageProps, TouchableOpacity, View } from "react-native"
+import { Dimensions, FlatList, Image, ImageProps, TouchableOpacity, View } from "react-native"
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated"
 import { SharedElement } from "react-navigation-shared-element"
 import { Screen, Header } from "../../../../components"
 import { goBack } from "../../../../navigators"
+import { GalleryStackParamList } from "../Stack/GalleryStack"
 import { IMAGE } from "../Utils"
 
 export const GalleryScreen = () => {
-  const navigation = useNavigation()
-  const [selectIndex, setSelectIndex] = useState<undefined | number>(undefined)
-
-  useFocusEffect(() => {
-    setSelectIndex(undefined)
-  })
-
+  const navigation = useNavigation<NavigationProp<GalleryStackParamList>>()
   return (
     <Screen
       preset="fixed"
@@ -44,11 +45,12 @@ export const GalleryScreen = () => {
             id={`image.${index}`}
             style={{
               flex: 1 / 3,
+              overflow: "hidden",
             }}
           >
             <AnimatedImageTouchable
+              navigation={navigation}
               onPress={() => {
-                setSelectIndex(index)
                 navigation.navigate("MediaViewer", {
                   index,
                 })
@@ -56,11 +58,10 @@ export const GalleryScreen = () => {
               source={item}
               style={{
                 flex: 1,
-                overflow: "hidden",
-                width: 200,
-                height: 200,
-                opacity: selectIndex === index ? 0 : 1
+                width: Dimensions.get("screen").width / 3,
+                height: Dimensions.get("screen").width / 3,
               }}
+              resizeMode="cover"
             />
           </SharedElement>
         )}
@@ -69,7 +70,11 @@ export const GalleryScreen = () => {
   )
 }
 
-const AnimatedImageTouchable = (props: ImageProps & { onPress: () => void }) => {
+const AnimatedImageTouchable = (
+  props: ImageProps & { onPress: () => void; navigation: NavigationProp<GalleryStackParamList> },
+) => {
+  const [opacity, setOpacity] = useState(1)
+
   const size = useSharedValue(1)
   const annimatedSize = useAnimatedStyle(() => {
     return {
@@ -80,6 +85,11 @@ const AnimatedImageTouchable = (props: ImageProps & { onPress: () => void }) => 
       ],
     }
   })
+  useFocusEffect(() => {
+    if (props.navigation.isFocused()) {
+      setOpacity(1)
+    }
+  })
   return (
     <TouchableOpacity
       activeOpacity={1}
@@ -88,11 +98,12 @@ const AnimatedImageTouchable = (props: ImageProps & { onPress: () => void }) => 
       }}
       onPressOut={() => {
         size.value = withSpring(1)
+        setOpacity(0)
         props.onPress && props.onPress()
       }}
       style={props.style}
     >
-      <Animated.Image {...props} style={[props.style, annimatedSize]} />
+      <Animated.Image {...props} style={[props.style, annimatedSize, { opacity }]} />
     </TouchableOpacity>
   )
 }

@@ -1,31 +1,47 @@
 import React, { useState } from "react"
-import { goBack as navigateBack } from "../../../navigators"
-import { Screen } from "../../../components/Screen"
-import { Alert, Dimensions, Image, View, ViewStyle } from "react-native"
+import { Dimensions, ViewStyle } from "react-native"
 import Animated, {
-  interpolate,
-  interpolateColor,
   runOnJS,
   useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
+  withSpring,
 } from "react-native-reanimated"
 import { PanGestureHandler, PanGestureHandlerGestureEvent } from "react-native-gesture-handler"
 import { clamp } from "react-native-redash"
 import { ZoomableItem } from "./ZoomableItem"
-import { goBack, goNext, IMAGE, MAX_ZOOM, MIN_ZOOM, SPACING, SWIP_DOWN_TRHESSHOLD } from "./Utils"
+import {
+  goBack,
+  goNext,
+  IMAGE,
+  ITEM_WIDTH,
+  MAX_ZOOM,
+  MIN_ZOOM,
+  SPACING,
+  SWIP_DOWN_TRHESSHOLD,
+} from "./Utils"
 import { SharedElement } from "react-navigation-shared-element"
+import { NavigationProp, RouteProp, useNavigation, useRoute } from "@react-navigation/native"
+import { GalleryStackParamList } from "./Stack/GalleryStack"
+import { Header } from "../../../components"
+import { useBackgroundTransparent, usePangestureContainerStyle } from "./useStyle"
 
 const { width, height } = Dimensions.get("screen")
+
 export const PinToZoomScreen = () => {
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const moveX = useSharedValue(0)
+  const navigation = useNavigation<NavigationProp<GalleryStackParamList>>()
+  const route = useRoute<RouteProp<GalleryStackParamList, "MediaViewer">>()
+  const initIndex = route.params.index || 0
+
+  const [currentIndex, setCurrentIndex] = useState(initIndex)
+  const moveX = useSharedValue(-initIndex * ITEM_WIDTH)
   const translateX = useSharedValue(0)
   const translateY = useSharedValue(0)
-
+  const onGoBack = useSharedValue(false)
   const onVertical = useSharedValue(false)
   const onHorizontal = useSharedValue(false)
+
+  const navigateBack = () => navigation.navigate("Gallery")
 
   const panGestureHandler = useAnimatedGestureHandler<
     PanGestureHandlerGestureEvent,
@@ -39,46 +55,54 @@ export const PinToZoomScreen = () => {
       context.x = translateX.value
       context.y = translateY.value
       context.moveX = moveX.value
-
-      onVertical.value = false
-      onHorizontal.value = false
     },
     onActive(event, context) {
-      if (!onHorizontal.value && !onVertical.value) {
-        if (Math.abs(event.translationX) > Math.abs(event.translationY)) {
+      if (
+        !onHorizontal.value &&
+        !onVertical.value &&
+        (Math.abs(event.translationX) > 10 || Math.abs(event.translationY) > 10)
+      ) {
+        if (Math.abs(event.translationX) > event.translationY) {
           onHorizontal.value = true
         } else {
           onVertical.value = true
         }
-      }
+      } else {
+        if (onHorizontal.value && !onVertical.value && translateY.value === 0) {
+          moveX.value = event.translationX + context.moveX
+        }
 
-      if (onHorizontal.value) {
-        moveX.value = event.translationX + context.moveX
-      }
-
-      if (onVertical.value) {
-        translateY.value = clamp(event.translationY + context.y, 0, height)
-        translateX.value = event.translationX + context.x
+        if (onVertical.value && !onHorizontal.value) {
+          translateY.value = event.translationY + context.y
+          translateX.value = event.translationX + context.x
+        }
       }
     },
     onEnd(event, context) {
       if (onHorizontal.value) {
         const _x = event.translationX
         const veX = Math.abs(event.velocityX)
+
         if (_x > 0) {
           goBack(_x, veX, moveX, currentIndex, setCurrentIndex)
         }
         if (_x < 0) {
           goNext(_x, veX, moveX, currentIndex, setCurrentIndex)
         }
+        onHorizontal.value = false
       }
 
       if (onVertical.value) {
         if (translateY.value > SWIP_DOWN_TRHESSHOLD) {
+          onGoBack.value = true
           runOnJS(navigateBack)()
+        } else {
+          moveX.value = context.moveX
+          translateX.value = withSpring(0, { velocity: event.velocityX })
+          translateY.value = withSpring(0, { velocity: event.velocityX }, () => {
+            onVertical.value = false
+          })
         }
-        translateX.value = withTiming(0, { duration: 200 })
-        translateY.value = withTiming(0, { duration: 200 })
       }
     },
   })
@@ -96,40 +120,18 @@ export const PinToZoomScreen = () => {
     }
   })
 
-  const $containerAnim = useAnimatedStyle(() => {
-    if (!onVertical.value) {
-      return {}
-    }
-    return {
-      transform: [
-        {
-          translateX: translateX.value,
-        },
-        {
-          translateY: translateY.value,
-        },
-        {
-          scale: interpolate(translateY.value, [0, height], [1, 0]),
-        },
-      ],
-    }
-  })
-
-  const $background = useAnimatedStyle(() => {
-    return {
-      backgroundColor: interpolateColor(translateY.value, [0, 200], ["black", "transparent"]),
-    }
-  })
+  const $containerAnim = usePangestureContainerStyle(onVertical, translateX, translateY)
+  const $background = useBackgroundTransparent(onGoBack, translateY)
 
   return (
     <Animated.View style={[$container, $background]}>
+      <Header onLeftPress={navigateBack} leftText="Back" />
       <Animated.View style={[$container, $containerAnim]}>
         <PanGestureHandler onGestureEvent={panGestureHandler}>
           <Animated.View style={[$mediaContainer, $containerTransform]}>
             {IMAGE.map((source, index) => (
-              <SharedElement id={`image.${index}`}>
+              <SharedElement key={index} id={`image.${index}`}>
                 <ZoomableItem
-                  key={index}
                   mediaIndex={index}
                   spacing={index !== 0 ? SPACING : 0}
                   minZoom={MIN_ZOOM}

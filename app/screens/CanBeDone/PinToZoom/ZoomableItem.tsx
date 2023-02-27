@@ -164,10 +164,11 @@ export const ZoomableItem = ({
       <GestureDetector gesture={gesture}>
         <Animated.Image
           source={source}
+          resizeMode="contain"
           style={[
             {
               width: width,
-              maxWidth: "100%",
+              height: height,
             },
             $imageStyle,
           ]}
