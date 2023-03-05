@@ -38,10 +38,10 @@ export const examples = [
   //   screen: "DynamicSpring",
   //   title: "👨‍🔬 Dynamic Spring",
   // },
-  // {
-  //   screen: "DragToSort",
-  //   title: "📤 Drag To Sort",
-  // },
+  {
+    screen: "DragToSort",
+    title: "📤 Drag To Sort",
+  },
   // {
   //   screen: "Swiping",
   //   title: "💚 Swiping",

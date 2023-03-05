@@ -4,6 +4,7 @@ import { observer } from "mobx-react-lite"
 import React from "react"
 import { CardTransitionScreen } from "../../screens/Cores/CardTransition/CardTransitionScreen"
 import { CircularSliderScreen } from "../../screens/Cores/CircularSlider/CircularSlidder"
+import { DragToSortScreen } from "../../screens/Cores/DragToSort/DragToSort"
 import { HeartOfTheMatterScreen } from "../../screens/Cores/HeartOfTheMatter/HeartOfTheMatterScreen"
 import { HigherOrderAnimationScreen } from "../../screens/Cores/HigerOrderAnimation/HigherOrderAnimation"
 import { PanGestureScreen } from "../../screens/Cores/PanGesture/PanGestureScreen"
@@ -18,6 +19,7 @@ export type CoreStackParamList = {
   HigherAnimation: undefined
   CircularSlider: undefined
   ShapeMorphing: undefined
+  DragToSort: undefined
 }
 
 export type CoreStackScreenProps<T extends keyof CoreStackParamList> = StackScreenProps<
@@ -39,6 +41,7 @@ export const CoreStack = observer(function CoreStack() {
       <Stack.Screen name="HigherAnimation" component={HigherOrderAnimationScreen} />
       <Stack.Screen name="CircularSlider" component={CircularSliderScreen} />
       <Stack.Screen name="ShapeMorphing" component={ShapeMorphingScreen} />
+      <Stack.Screen name="DragToSort" component={DragToSortScreen} />
     </Stack.Navigator>
   )
 })
